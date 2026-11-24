@@ -1,0 +1,16 @@
+@baseUrl = http://localhost:8080
+
+### Get all users
+GET {{baseUrl}}/api/users
+
+###
+
+### Get user by ID
+GET {{baseUrl}}/api/users/1
+
+###
+
+### Get users by role
+GET {{baseUrl}}/api/users/role/DISPATCHER
+
+###
