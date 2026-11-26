@@ -1,23 +1,41 @@
 package com.example.fleetflow.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import com.example.fleetflow.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.lang.IllegalArgumentException;
 
 import com.example.fleetflow.entity.User;
 import com.example.fleetflow.enums.Role;
+import com.example.fleetflow.dto.UserCreateDTO;
 import com.example.fleetflow.dto.UserResponseDTO;
+import com.example.fleetflow.repository.UserRepository;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    private UserResponseDTO convertToDTO(User user) {
+
+        return new UserResponseDTO(
+            user.getId(), 
+            user.getName(), 
+            user.getEmail(),
+            user.getRole(),
+            user.isEnabled(),
+            user.getCreatedAt(),
+            user.getUpdatedAt()
+        );
+
+    }
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<UserResponseDTO> getAllUsers(){
@@ -49,20 +67,25 @@ public class UserService {
                     .stream()
                     .map(this::convertToDTO)
                     .toList();
-    }
+    }    
 
-    private UserResponseDTO convertToDTO(User user) {
+    public UserResponseDTO createUser(UserCreateDTO userCreateDTO){
 
-        return new UserResponseDTO(
-            user.getId(), 
-            user.getName(), 
-            user.getEmail(),
-            user.getRole(),
-            user.isEnabled(),
-            user.getCreatedAt(),
-            user.getUpdatedAt()
+        if(userRepository.existsByEmail(userCreateDTO.getEmail())){
+            throw new IllegalArgumentException("Email is already registered");
+        }
+        
+        String encodedPassword = passwordEncoder.encode(userCreateDTO.getPassword());
+
+        User user = User.createUser(
+            userCreateDTO.getName(), 
+            userCreateDTO.getEmail(), 
+            encodedPassword, 
+            userCreateDTO.getRole()
         );
 
-    }
+        User savedUser = userRepository.save(user);
 
+        return convertToDTO(savedUser);
+    }
 }

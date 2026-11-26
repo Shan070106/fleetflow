@@ -47,6 +47,17 @@ public class User {
 
     protected User() {}
 
+    public static User createUser(String name, String email, String password, Role role){
+        User user = new User();
+        
+        user.setName(name);
+        user.setEmail(email);
+        user.setPassword(password);
+        user.setRole(role);
+
+        return user;
+    }
+    
     @PrePersist 
     protected void onCreate() {
         createdAt = LocalDateTime.now();
